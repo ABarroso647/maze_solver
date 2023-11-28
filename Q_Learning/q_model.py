@@ -143,6 +143,8 @@ def train_model(qmaze: Qmaze, optim_path):
             print("Solved to perfection")
             break
 
+        if epsilon > 0.1:  # Decrements the epsilon value each epoch
+            epsilon -= (1 / n_epoch)
     return
 
 if __name__  == '__main__':
