@@ -29,14 +29,15 @@ class QModel(nn.Module):
         return x
 
 
-def follows_path(qmaze, model, optim_path):
+def follows_path(qmaze, model, optim_path, device):
     qmaze.reset((0,0))
     model.eval()
     for move in optim_path:
         if tuple(qmaze.state[0:2]) != move:
             return False
         envstate = torch.from_numpy(qmaze.observe()).float()
-        envstate = envstate.cuda()
+        if device == 'cuda':
+            envstate = envstate.cuda()
         q = model(envstate)
         q = q.data.to('cpu').numpy()
         action = np.argmax(q)
@@ -138,7 +139,7 @@ def train_model(qmaze: Qmaze, optim_path):
         if len(win_history) > h_size:
             win_rate = sum(win_history[-h_size:]) / h_size
         print('win rate: ' + str(win_rate))
-        if win_rate == 1.0 and follows_path(qmaze, model2, optim_path):
+        if win_rate == 1.0 and follows_path(qmaze, model2, optim_path, device):
             print("Solved to perfection")
             break
 
