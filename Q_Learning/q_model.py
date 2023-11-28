@@ -1,7 +1,7 @@
 import copy
 from collections import deque
 import Maze_Generation.gen as maze_gen
-from q_maze import ACTIONS, Qmaze
+from q_maze import ACTIONS, Qmaze, show
 import random
 import numpy as np
 import torch
@@ -12,7 +12,30 @@ import torchvision
 from torchinfo import summary
 
 import Maze_Generation.gen as maze_gen
+
 # exploration factor
+test_maze = [[0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ],
+             [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, ],
+             [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, ],
+             [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, ],
+             [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, ],
+             [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, ],
+             [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, ],
+             [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, ],
+             [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, ],
+             [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, ],
+             [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, ],
+             [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, ],
+             [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, ],
+             [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, ],
+             [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, ],
+             [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, ],
+             [1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, ],
+             [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, ],
+             [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, ],
+             [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, ],
+             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, ], ]
+
 
 class QModel(nn.Module):
     def __init__(self, maze_size):
@@ -20,8 +43,9 @@ class QModel(nn.Module):
         self.fc1 = nn.Linear(maze_size, maze_size)
         self.fc2 = nn.Linear(maze_size, len(ACTIONS))
         self.prelu = nn.PReLU()
+
     def forward(self, x):
-        #x = torch.flatten(x)
+        # x = torch.flatten(x)
         x = self.fc1(x)
         x = self.prelu(x)
         x = self.prelu(self.fc1(x))
@@ -30,7 +54,7 @@ class QModel(nn.Module):
 
 
 def follows_path(qmaze, model, optim_path, device):
-    qmaze.reset((0,0))
+    qmaze.reset((0, 0))
     model.eval()
     for move in optim_path:
         if tuple(qmaze.state[0:2]) != move:
@@ -44,17 +68,37 @@ def follows_path(qmaze, model, optim_path, device):
         qmaze.act(action)
     return True
 
+
+def play_game(qmaze, model, device):
+    qmaze.reset((0, 0))
+    model.eval()
+    while 1:
+        envstate = torch.from_numpy(qmaze.observe()).float()
+        if device == 'cuda':
+            envstate = envstate.cuda()
+        q = model(envstate)
+        q = q.data.to('cpu').numpy()
+        action = np.argmax(q)
+        _,_, game_status = qmaze.act(action)
+        if game_status == 'win':
+            show(qmaze)
+            return  True
+        elif game_status == 'lose':
+            show(qmaze)
+            return  False
+
+
 def train_model(qmaze: Qmaze, optim_path):
     n_epoch = 2000
     lr = 1e-3
     epsilon = 0.1
     mem_size = 1000
-    batch_size = 200
+    batch_size = 400
     gamma = 0.9
     symc_freq = 500
     total_count = 0
-    h_size = qmaze.maze.size//2
-    replay = deque(maxlen = mem_size)
+    h_size = 100
+    replay = deque(maxlen=mem_size)
     device = 'cpu'
     if torch.cuda.is_available():
         device = 'cuda'
@@ -69,8 +113,9 @@ def train_model(qmaze: Qmaze, optim_path):
     optimizer = optim.Adam(model.parameters(), lr)
     losses = []
     win_rate = 0.0
+    count = 0
     for i in range(n_epoch):
-        qmaze.reset((0,0))
+        qmaze.reset((0, 0))
         game_over = False
         optimizer.zero_grad()
         running_losses = []
@@ -95,8 +140,8 @@ def train_model(qmaze: Qmaze, optim_path):
             # apply_action, get reward and new envstate
             new_envstate, reward, game_status = qmaze.act(action)
             if game_status == 'win' or game_status == 'lose':
-                win_history.append(game_status=='win')
-                game_over= True
+                win_history.append(game_status == 'win')
+                game_over = True
             else:
                 game_over = False
             new_envstate = torch.from_numpy(new_envstate).float()
@@ -105,7 +150,7 @@ def train_model(qmaze: Qmaze, optim_path):
 
             replay.append([envstate, action, reward, new_envstate, game_over])
             envstate = new_envstate
-            n_episodes +=1
+            n_episodes += 1
             if len(replay) > batch_size:
                 minibatch = random.sample(replay, batch_size)
                 envstate_batch = torch.cat([s1 for (s1, a, r, s2, d) in minibatch])
@@ -122,7 +167,7 @@ def train_model(qmaze: Qmaze, optim_path):
                 with torch.no_grad():
                     Q2 = model2(new_envstate_batch)
 
-                y = reward_batch + gamma*((1-game_over_batch) * torch.max(Q2, dim=1)[0])
+                y = reward_batch + gamma * ((1 - game_over_batch) * torch.max(Q2, dim=1)[0])
                 x = Q1.gather(dim=1, index=action_batch.long().unsqueeze(dim=1)).squeeze()
                 loss = criterion(x, y.detach())
                 optimizer.zero_grad()
@@ -133,20 +178,26 @@ def train_model(qmaze: Qmaze, optim_path):
                 if total_count % symc_freq == 0:
                     model2.load_state_dict(model.state_dict())
 
-        print('epoch: ' + str(i+1))
+        print('epoch: ' + str(i + 1))
         print('loss: ' + str(np.mean(running_losses)))
         losses.append(np.mean(running_losses))
         if len(win_history) > h_size:
             win_rate = sum(win_history[-h_size:]) / h_size
         print('win rate: ' + str(win_rate))
-        if win_rate == 1.0 and follows_path(qmaze, model2, optim_path, device):
+        # follows_path(qmaze, model2, optim_path, device)
+        if win_rate == 1.0 and count > 4:
             print("Solved to perfection")
             break
+        elif win_rate == 1.0:
+            count += 1
 
         if epsilon > 0.1:  # Decrements the epsilon value each epoch
             epsilon -= (1 / n_epoch)
-    return
+    return model2
 
-if __name__  == '__main__':
-    test = maze_gen.find_shortest_path(maze_gen.maze, (0,0), (9,9))
-    train_model(Qmaze(maze_gen.maze), test)
+
+if __name__ == '__main__':
+    test = maze_gen.find_shortest_path(maze_gen.maze, (0, 0), (9, 9))
+    maze = Qmaze(test_maze)
+    model2 = train_model(maze, test)
+    play_game(maze, model2, 'cuda')
