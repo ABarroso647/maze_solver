@@ -4,18 +4,41 @@ from queue import Queue
 from matplotlib.colors import ListedColormap
 
 # DO NOT MODIFY MAZE
-maze = [
- [0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
- [0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
- [1, 0, 1, 0, 1, 1, 1, 1, 0, 1],
- [1, 0, 1, 0, 1, 0, 0, 0, 0, 1],
- [1, 0, 0, 0, 1, 1, 1, 1, 0, 1],
- [1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
- [1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
- [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
- [1, 0, 1, 1, 1, 1, 1, 1, 0, 0],
- [0, 0, 0, 1, 1, 1, 1, 1, 1, 0]
+MAZE = [
+    [0, 1, 1, 1, 1, 1, 1, 1, 1, 1],
+    [0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 0, 1, 1, 1, 1, 0, 1],
+    [1, 0, 1, 0, 1, 0, 0, 0, 0, 1],
+    [1, 0, 0, 0, 1, 1, 1, 1, 0, 1],
+    [1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
+    [1, 0, 1, 1, 1, 0, 1, 1, 0, 1],
+    [1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+    [1, 0, 1, 1, 1, 1, 1, 1, 0, 0],
+    [0, 0, 0, 1, 1, 1, 1, 1, 1, 0]
 ]
+
+BIG_MAZE = [[0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1],
+            [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            [0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1],
+            [0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1],
+            [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1],
+            [1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1],
+            [0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1],
+            [0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1],
+            [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1],
+            [0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1],
+            [0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1],
+            [0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1],
+            [1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1],
+            [0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1],
+            [0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1],
+            [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+            [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0]]
+
+
 # DO NOT MODIFY MAZE
 
 # Find the shortest path 
@@ -26,7 +49,11 @@ maze = [
 # eg. [[0, 0], [1, 0], [1, 1]...]
 
 # Use this function to test against your own algo to make sure it can find the shortest path
-def find_shortest_path(maze, start, end):
+def find_shortest_path(maze):
+    maze = np.array(maze)
+    start = (0, 0)
+    end = (maze.shape[0]-1, maze.shape[1]-1)
+
     directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
     size = len(maze)
     visited = [[False] * size for _ in range(size)]
@@ -49,7 +76,7 @@ def find_shortest_path(maze, start, end):
                 prev[nx][ny] = (x, y)
 
     path = []
-    if prev[end[0]][end[1]] is not None:  
+    if prev[end[0]][end[1]] is not None:
         at = end
         while at:
             path.append(at)
@@ -64,10 +91,12 @@ def find_shortest_path(maze, start, end):
 # eg. [[0, 0], [1, 0], [1, 1]...]
 
 # Function will pop up a matplotlib diagram when exectuted
-def plot_maze(maze, path):
-
-    for x, y in path:
-        maze[x][y] = 2
+def plot_maze(maze, path=None):
+    maze = np.array(maze)
+    if path is not None:
+        maze[0][0] = 2
+        for x, y in path:
+            maze[x][y] = 2
 
     cmap = ListedColormap(['white', 'black', 'green'])
 
@@ -82,6 +111,9 @@ def plot_maze(maze, path):
     plt.yticks([y - 0.5 for y in range(1, len(maze))], [])
 
     plt.tick_params(axis=u'both', which=u'both', length=0)
+
+    plt.arrow(0 - 0.4, 0, 0.4, 0, fc='red', ec='red', head_width=0.3, head_length=0.3)
+    plt.arrow(maze.shape[1] - 1 - 0.4, maze.shape[0] - 1, 0.4, 0, fc='blue', ec='blue', head_width=0.3, head_length=0.3)
 
     plt.show()
 
