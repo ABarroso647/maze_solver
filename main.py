@@ -56,11 +56,7 @@ if __name__ == '__main__':
 
         print(f"Shortest path length: {len(shortest_path)}")
 
-        count = 0
-        path = []
-        while count < max_iter:
-            count += 1
-            path = run_ant_colony(maze, len(shortest_path), max_iterations, ant_count, max_moves)
+        path = run_ant_colony(maze, len(shortest_path), max_iterations, ant_count, max_moves)
         # plot final iteration
         plot_maze(maze, path)
     elif config['search_algorithm'] == 'genetic':
