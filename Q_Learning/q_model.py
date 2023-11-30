@@ -9,33 +9,6 @@ import torch.nn as nn
 import torch.optim as optim
 
 
-
-import Maze_Generation.gen as maze_gen
-
-# exploration factor
-test_maze = [[0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, ],
-             [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, ],
-             [1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, ],
-             [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, ],
-             [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, ],
-             [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, ],
-             [1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, ],
-             [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, ],
-             [1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, ],
-             [1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, ],
-             [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, ],
-             [1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, ],
-             [1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, ],
-             [1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, ],
-             [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, ],
-             [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, ],
-             [1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, ],
-             [1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, ],
-             [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, ],
-             [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, ],
-             [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, ], ]
-
-
 class QModel(nn.Module):
     def __init__(self, maze_size):
         super().__init__()
@@ -78,13 +51,11 @@ def play_game(qmaze, model, device):
         q = model(envstate)
         q = q.data.to('cpu').numpy()
         action = np.argmax(q)
-        _,_, game_status = qmaze.act(action)
+        _, _, game_status = qmaze.act(action)
         if game_status == 'win':
-            show(qmaze)
-            return  True
+            return True
         elif game_status == 'lose':
-            show(qmaze)
-            return  False
+            return False
 
 
 def train_model(qmaze: Qmaze, optim_path, **kwargs):
@@ -95,7 +66,7 @@ def train_model(qmaze: Qmaze, optim_path, **kwargs):
     batch_size = kwargs['batch_size']
     gamma = kwargs['gamma']
     sync_freq = kwargs['sync_freq']
-    h_size = kwargs['h_size']
+    min_epochs = kwargs['min_epochs']
     total_count = 0
 
     replay = deque(maxlen=mem_size)
@@ -182,10 +153,10 @@ def train_model(qmaze: Qmaze, optim_path, **kwargs):
         print('epoch: ' + str(i + 1))
         print('loss: ' + str(np.mean(running_losses)))
         losses.append(np.mean(running_losses))
-        if len(win_history) > h_size:
-            win_rate = sum(win_history[-h_size:]) / h_size
+        if len(win_history) > min_epochs:
+            win_rate = sum(win_history[-min_epochs:]) / min_epochs
         print('win rate: ' + str(win_rate))
-        # follows_path(qmaze, model2, optim_path, device)
+
         if win_rate == 1.0 and follows_path(qmaze, model2, optim_path, device):
             print("Solved to perfection")
             break
@@ -195,10 +166,3 @@ def train_model(qmaze: Qmaze, optim_path, **kwargs):
         if epsilon > 0.1:  # Decrements the epsilon value each epoch
             epsilon -= (1 / n_epoch)
     return model2
-
-
-if __name__ == '__main__':
-    test = maze_gen.find_shortest_path(maze_gen.MAZE)
-    maze = Qmaze(test_maze)
-    model2 = train_model(maze, test)
-    play_game(maze, model2, 'cuda')

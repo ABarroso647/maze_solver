@@ -3,12 +3,12 @@ search_algorithm: q_learning  # Options: q_learning, genetic, ACO
 maze_size: small  # Options: small, big
 
 q_learning:
-  n_epoch: 2000
-  lr: 0.01
+  n_epoch: 200
+  lr: 0.001
   epsilon: 0.9
-  mem_size: 1000
-  batch_size: 400
+  mem_size: 2000
+  batch_size: 50
   gamma: 0.9
   sync_freq: 250
-  h_size: 10
+  min_epochs: 50
 
