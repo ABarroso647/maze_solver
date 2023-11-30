@@ -1,15 +1,14 @@
 import copy
 from collections import deque
-import Maze_Generation.gen as maze_gen
-from q_maze import ACTIONS, Qmaze, show
+from Q_Learning.q_maze import ACTIONS, Qmaze, show
 import random
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
+
 import torch.optim as optim
-import torchvision
-from torchinfo import summary
+
+
 
 import Maze_Generation.gen as maze_gen
 
@@ -88,20 +87,22 @@ def play_game(qmaze, model, device):
             return  False
 
 
-def train_model(qmaze: Qmaze, optim_path):
-    n_epoch = 2000
-    lr = 1e-3
-    epsilon = 0.1
-    mem_size = 1000
-    batch_size = 400
-    gamma = 0.9
-    symc_freq = 500
+def train_model(qmaze: Qmaze, optim_path, **kwargs):
+    n_epoch = kwargs['n_epoch']
+    lr = kwargs['lr']
+    epsilon = kwargs['epsilon']
+    mem_size = kwargs['mem_size']
+    batch_size = kwargs['batch_size']
+    gamma = kwargs['gamma']
+    sync_freq = kwargs['sync_freq']
+    h_size = kwargs['h_size']
     total_count = 0
-    h_size = 100
+
     replay = deque(maxlen=mem_size)
     device = 'cpu'
     if torch.cuda.is_available():
         device = 'cuda'
+    print(f"Device: {device}")
 
     model = QModel(qmaze.maze.size)
     if device == 'cuda':
@@ -175,7 +176,7 @@ def train_model(qmaze: Qmaze, optim_path):
                 running_losses.append(loss.item())
                 optimizer.step()
 
-                if total_count % symc_freq == 0:
+                if total_count % sync_freq == 0:
                     model2.load_state_dict(model.state_dict())
 
         print('epoch: ' + str(i + 1))
@@ -185,7 +186,7 @@ def train_model(qmaze: Qmaze, optim_path):
             win_rate = sum(win_history[-h_size:]) / h_size
         print('win rate: ' + str(win_rate))
         # follows_path(qmaze, model2, optim_path, device)
-        if win_rate == 1.0 and count > 4:
+        if win_rate == 1.0 and follows_path(qmaze, model2, optim_path, device):
             print("Solved to perfection")
             break
         elif win_rate == 1.0:
@@ -197,7 +198,7 @@ def train_model(qmaze: Qmaze, optim_path):
 
 
 if __name__ == '__main__':
-    test = maze_gen.find_shortest_path(maze_gen.maze, (0, 0), (9, 9))
+    test = maze_gen.find_shortest_path(maze_gen.MAZE)
     maze = Qmaze(test_maze)
     model2 = train_model(maze, test)
     play_game(maze, model2, 'cuda')

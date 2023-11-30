@@ -2,7 +2,7 @@ import numpy as np
 from numpy import float32
 
 import Maze_Generation.gen as maze_gen
-from typing import Tuple, List, Optional
+from typing import Optional
 import matplotlib.pyplot as plt
 
 # declared constants
@@ -24,7 +24,7 @@ ACTIONS = {
 
 
 class Qmaze:
-    def __init__(self, maze: List[List[float]], initial_pos: Tuple = (0, 0)) -> None:
+    def __init__(self, maze: list[list[float]], initial_pos: tuple[int,int] = (0, 0)) -> None:
         self._maze = np.array(maze).astype(float32)
         nrows, ncols = self._maze.shape
         self.target = (nrows - 1, ncols - 1)  # bottom right = target
@@ -38,7 +38,7 @@ class Qmaze:
             raise Exception("Invalid Rat Location: must sit on a free cell")
         self.reset(initial_pos)
 
-    def reset(self, agent: Tuple) -> None:
+    def reset(self, agent: tuple[int,int] ) -> None:
         self.agent = agent
         self.maze = np.copy(self._maze)
         row, col = agent
@@ -121,7 +121,7 @@ class Qmaze:
 
         return 'not over'
 
-    def valid_actions(self, cell: Optional[Tuple]=None)-> List[int]:
+    def valid_actions(self, cell: Optional[tuple[int,int]]=None)-> list[int]:
         if cell is None:
             row, col, mode = self.state
         else:
@@ -149,6 +149,12 @@ class Qmaze:
             actions.remove(2)
 
         return actions
+
+    def path(self) -> list[tuple[int,int]]:
+        visited = self.visited
+        cur_row, cur_col, _ = self.state
+        visited.add((cur_row, cur_col))
+        return list(visited)
 
 
 
