@@ -17,6 +17,7 @@ if __name__ == '__main__':
         maze = BIG_MAZE
 
     shortest_path = find_shortest_path(maze)
+    plot_maze(maze, shortest_path)
 
     if config['search_algorithm'] == 'q_learning':
         # hyperparameters
