@@ -1,108 +1,105 @@
-import sys
-sys.path.append('../Maze_Generation/')
-from gen import find_shortest_path, plot_maze, maze
 import random
 import time
 
 #### Variables
-# Number of steps each creature can take
-CREATURE_LIFESPAN = 100
-# Number of times creatures are released into maze (generations)
-MAX_ITERATIONS = 30
-# Numbers of creatures released each iteration
-CREATURE_COUNT = 30 # divisible by 10
-# The end of the maze (bottom right corner)
-GOAL_POSITION = [9,9]
-# start posistion
-START_POSITION = [0,0]
+START_POSITION = [0, 0]
 
 # Enable/disable timing tests
 ENABLE_TIMING = True
 
-# Known shortest path length
-KNOWN_SHORTEST_PATH_LENGTH = 19
-
-MUTATION_RATE = 0.05 #mutate 15% of the moves
 
 #### Creature
 class Creature:
-    def __init__(self, maze, brain, START_POSITION):
-        self.position = START_POSITION.copy()
+    def __init__(self, maze, brain, start_position, mutation_rate):
+        self.position = start_position.copy()
 
-        self.brain = brain # list of desired direcitons at each move
-        self.moves = 0 # number of moves taken
-        self.dead = False # if the creature has ran out of moves
+        self.brain = brain  # list of desired direcitons at each move
+        self.moves = 0  # number of moves taken
+        self.dead = False  # if the creature has ran out of moves
         self.current_path = []
         self.completed_maze = False
         self.fitness = 404
-        
+
         self.maze = maze
-        
+
+        self.GOAL_POSITION = [len(maze) - 1, len(maze) - 1]
+        self.MUTATION_RATE = mutation_rate  # mutate 15% of the moves
+
     def move(self):
-        #perform moves until dead or completed maze
+        # perform moves until dead or completed maze
         while not self.dead and not self.completed_maze:
-            self.current_path.append(list(self.position))
+            self.current_path.append(tuple(self.position))
             self.moves += 1
-            if(self.moves > len(self.brain) - 1):
+            if (self.moves > len(self.brain) - 1):
                 self.dead = True
-                self.current_path.append(list(self.position))
+                self.current_path.append(tuple(self.position))
                 break
 
             valid_moves = self.get_valid_moves()
 
-            #check if the next desired move is valid
+            # check if the next desired move is valid
             if not (self.brain[self.moves] not in valid_moves):
-                #update position and path
+                # update position and path
                 self.position[0] += self.brain[self.moves][0]
                 self.position[1] += self.brain[self.moves][1]
 
-                if self.position == GOAL_POSITION: 
+                if self.position == self.GOAL_POSITION:
                     self.completed_maze = True
-                    self.current_path.append(list(self.position))
+                    self.current_path.append(tuple(self.position))
                     break
 
     def calculate_fitness(self):
-        #fitness is the number of moves taken to complete the maze or die
+        # fitness is the number of moves taken to complete the maze or die
         self.fitness = self.moves
-        #fitness is lower the better
-        #fitness goes up if the creature is far from the goal
-        self.fitness += abs(self.position[0] - GOAL_POSITION[0])*0.1 + abs(self.position[1] - GOAL_POSITION[1])*0.1
+        # fitness is lower the better
+        # fitness goes up if the creature is far from the goal
+        self.fitness += abs(self.position[0] - self.GOAL_POSITION[0]) * 0.1 + abs(
+            self.position[1] - self.GOAL_POSITION[1]) * 0.1
 
-        #print(self.position, fitness, self.moves, self.completed_maze, self.dead, len(self.brain))
-
+        # print(self.position, fitness, self.moves, self.completed_maze, self.dead, len(self.brain))
 
     def mutate(self):
-        #randomly change some percent of the moves in the brain
-        for i in range(int(len(self.brain) * MUTATION_RATE)):
-            self.brain[random.randint(0, len(self.brain) - 1)] = random.choice([[0,1], [1,0], [-1,0], [0,-1]])
+        # randomly change some percent of the moves in the brain
+        for i in range(int(len(self.brain) * self.MUTATION_RATE)):
+            self.brain[random.randint(0, len(self.brain) - 1)] = random.choice([[0, 1], [1, 0], [-1, 0], [0, -1]])
 
     def get_valid_moves(self):
         valid_moves = []
 
-        directions = [[0,1], [1,0], [-1,0], [0,-1]]
+        directions = [[0, 1], [1, 0], [-1, 0], [0, -1]]
 
         for dx, dy in directions:
             newx = self.position[0] + dx
             newy = self.position[1] + dy
 
-            if (newx < 0 or newy < 0 or newx >= len(self.maze) or newy >= len(self.maze[0]) 
-                or self.maze[newx][newy] != 0):
+            if (newx < 0 or newy < 0 or newx >= len(self.maze) or newy >= len(self.maze[0])
+                    or self.maze[newx][newy] != 0):
                 continue
-            valid_moves.append([dx,dy])        
+            valid_moves.append([dx, dy])
 
         return valid_moves
 
-def run_genetic_algorithm():
+
+def run_genetic_algorithm(maze, shortest_path_len, creature_lifespan, creature_count, mutation_rate, max_iterations):
+    CREATURE_LIFESPAN = creature_lifespan
+    CREATURE_COUNT = creature_count
+    MAX_ITERATIONS = max_iterations
+
+    # Known shortest path length
+    known_shortest_path_len = shortest_path_len
+    print(f"Shortest path length: {known_shortest_path_len}")
+
     iterations = 0
-    lowest_fitness = float('inf') #lower is better
+    lowest_fitness = float('inf')  # lower is better
     shortest_path = []
-    
+
     # Start, end times as well as figuring out how long it took to
     # A. Complete the maze and B. Find the shortest path.
     start = time.time()
     first_maze_completion = False
     shortest_path_completion = False
     shortest_path_length = 999999999
+    shortest_path__len_no_revisit = 999999999  # Shortest path when revisited nodes are not counted
     end_time_first_maze_completion = time.time()
     end_time_shortest_path_completion = time.time()
 
@@ -111,16 +108,16 @@ def run_genetic_algorithm():
     while iterations < MAX_ITERATIONS:
         # Generate a bunch of creatures and move them around the maze
 
-        if(iterations == 0):
+        if (iterations == 0):
             for i in range(CREATURE_COUNT):
                 brains = []
-                #generate a random brain for each creature
-                possible_directions = [[0,1], [1,0], [-1,0], [0,-1]]
+                # generate a random brain for each creature
+                possible_directions = [[0, 1], [1, 0], [-1, 0], [0, -1]]
                 for i in range(CREATURE_LIFESPAN):
                     brains.append(random.choice(possible_directions))
 
-                creatures.append(Creature(maze, brains, START_POSITION))
-        
+                creatures.append(Creature(maze, brains, START_POSITION, mutation_rate))
+
         for creature in creatures:
             # Move each creature
             creature.move()
@@ -128,12 +125,13 @@ def run_genetic_algorithm():
             if len(creature.current_path) < shortest_path_length:
                 # Timing calculations
                 if (ENABLE_TIMING and not shortest_path_completion and
-                    len(creature.current_path) == KNOWN_SHORTEST_PATH_LENGTH):
+                        len(set(creature.current_path)) == known_shortest_path_len):
                     shortest_path_completion = True
                     end_time_shortest_path_completion = time.time()
                     print("Time to find the shortest path through the maze: ",
-                            end_time_shortest_path_completion - start)
+                          end_time_shortest_path_completion - start)
                 shortest_path_length = len(creature.current_path)
+                shortest_path__len_no_revisit = len(set(creature.current_path))
                 shortest_path = creature.current_path
 
             # If the creature completes the maze, keep track of it if was the shortest path so far
@@ -142,10 +140,8 @@ def run_genetic_algorithm():
                 if ENABLE_TIMING and not first_maze_completion:
                     first_maze_completion = True
                     end_time_first_maze_completion = time.time()
-                    print("Time to find a complete path through the maze: ", 
+                    print("Time to find a complete path through the maze: ",
                           end_time_first_maze_completion - start)
-
-                
 
         # Sort the creatures by fitness
         creatures.sort(key=lambda x: x.fitness)
@@ -153,43 +149,35 @@ def run_genetic_algorithm():
         # pick top 10% of creatures and mutate them
         survivors = creatures[:int(len(creatures) * 0.1)]
 
-        #print info for the generation
+        # print info for the generation
         print("Generation: ", iterations)
-        #print("Creatures: ", len(creatures))
-        print("Shortest Path Length: ", shortest_path_length)
-        #print("Shortest Path: ", shortest_path)
+        # print("Creatures: ", len(creatures))
+        print(f"Shortest Path Length: {shortest_path_length} ({shortest_path__len_no_revisit} without revisits)")
+        # print("Shortest Path: ", shortest_path)
         print("Shortest Path Fitness: ", creatures[0].fitness)
 
         creatures = []
 
         for survivor in survivors:
             for i in range(10):
-                creatures.append(Creature(maze, survivor.brain.copy(), START_POSITION))
+                creatures.append(Creature(maze, survivor.brain.copy(), START_POSITION, mutation_rate))
                 creatures[-1].mutate()
-
-        
-        
 
         iterations += 1
 
-    print(shortest_path)
-    print(shortest_path_length)
+    # print info for the generation
+    print("Final results:")
+    print(f"Shortest Path Length: {shortest_path_length} ({shortest_path__len_no_revisit} without revisits)")
 
     if ENABLE_TIMING:
         if first_maze_completion:
-            print("Time to find a complete path through the maze: ", 
-                end_time_first_maze_completion - start)
-        
+            print("Time to find a complete path through the maze: ",
+                  end_time_first_maze_completion - start)
+
         if shortest_path_completion:
             print("Time to find the shortest path through the maze: ",
-                    end_time_shortest_path_completion - start)
-
+                  end_time_shortest_path_completion - start)
 
     # Plot the shortest path we calculated
-    plot_maze(maze, shortest_path)
-
-  
-
-    
-if __name__ == "__main__":
-    run_genetic_algorithm()
+    # plot_maze(maze, shortest_path)
+    return shortest_path

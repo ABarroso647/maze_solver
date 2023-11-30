@@ -20,3 +20,15 @@ ACO:
   max_iterations: 10
   # Numbers of ants released each iteration
   ant_count: 10
+  # Numbers of runs of algorithm
+  max_total_iterations: 10
+
+genetic:
+  # Number of steps each creature can take
+  creature_lifespan: 100
+  # Numbers of creatures released each iteration
+  creature_count: 30 # divisible by 10
+  # Number of times creatures are released into maze (generations)
+  max_iterations: 100
+  # mutate 15% of the moves
+  mutation_rate: 0.05

@@ -1,12 +1,9 @@
-import sys
-from Maze_Generation.gen import find_shortest_path, plot_maze, MAZE
+import numpy as np
 import random
 import time
 
 # Enable/disable timing tests
 ENABLE_TIMING = True
-# Known shortest path length
-KNOWN_SHORTEST_PATH_LENGTH = 19
 
 
 class Ant:
@@ -51,6 +48,8 @@ class Ant:
                 newy = self.position[1] + dy
 
                 move_probability = self.pheremones[newx][newy] / all_pheremones
+                if np.isnan(move_probability):
+                    move_probability = 1.0
                 probabilities.append(move_probability)
 
             # Choose a random move based on the weighted probability previously calculated
@@ -116,11 +115,14 @@ class Maze:
                 pheremone *= (1 - self.evaporation_rate)
 
 
-def run_ant_colony(maze, max_iterations, ant_count, max_moves):
+def run_ant_colony(maze, shortest_path_len, max_iterations, ant_count, max_moves):
     # Number of times ants are released into maze (generations)
-    ANT_COLONY_MAX_ITERATIONS =  max_iterations
+    ANT_COLONY_MAX_ITERATIONS = max_iterations
     # Numbers of ants released each iteration
     ANT_COUNT = ant_count
+
+    # Known shortest path length
+    known_shortest_path_len = shortest_path_len
 
     iterations = 0
     shortest_path_length = float('inf')
@@ -152,11 +154,12 @@ def run_ant_colony(maze, max_iterations, ant_count, max_moves):
                 if len(ant.current_path) < shortest_path_length:
                     # Timing calculations
                     if (ENABLE_TIMING and not shortest_path_completion and
-                            len(ant.current_path) == KNOWN_SHORTEST_PATH_LENGTH):
+                            len(ant.current_path) == known_shortest_path_len):
                         shortest_path_completion = True
                         end_time_shortest_path_completion = time.time()
                         print("Time to find the shortest path through the maze: ",
                               end_time_shortest_path_completion - start)
+                        return ant.current_path
                     shortest_path_length = len(ant.current_path)
                     shortest_path = ant.current_path
 
@@ -168,4 +171,3 @@ def run_ant_colony(maze, max_iterations, ant_count, max_moves):
     # Plot the shortest path we calculated
     # if not ENABLE_TIMING:
     #     plot_maze(final_maze.maze, shortest_path)
-

@@ -6,6 +6,7 @@ import yaml
 from Q_Learning.q_model import Qmaze, train_model, play_game
 from Maze_Generation.gen import MAZE, BIG_MAZE, find_shortest_path
 from Ant_Colony_Optimization.aco import run_ant_colony
+from Genetic_Algo.genetic import run_genetic_algorithm
 
 if __name__ == '__main__':
     with open('./config/config.yml', 'r') as f:
@@ -14,6 +15,8 @@ if __name__ == '__main__':
     maze = MAZE
     if config['maze_size'] == 'big':
         maze = BIG_MAZE
+
+    shortest_path = find_shortest_path(maze)
 
     if config['search_algorithm'] == 'q_learning':
         # hyperparameters
@@ -27,11 +30,12 @@ if __name__ == '__main__':
         sync_freq = config['q_learning']['sync_freq']
         min_epochs = config['q_learning']['min_epochs']
 
-        test = find_shortest_path(maze)
         q_maze = Qmaze(maze)
         t0 = time.time()
-        model = train_model(q_maze, test, n_epoch=n_epoch, lr=lr, epsilon=epsilon,epsilon_decay_factor =epsilon_decay_factor,
-                            mem_size=mem_size, batch_size=batch_size, gamma=gamma, sync_freq=sync_freq, min_epochs=min_epochs)
+        model = train_model(q_maze, shortest_path, n_epoch=n_epoch, lr=lr, epsilon=epsilon,
+                            epsilon_decay_factor=epsilon_decay_factor,
+                            mem_size=mem_size, batch_size=batch_size, gamma=gamma, sync_freq=sync_freq,
+                            min_epochs=min_epochs)
         t1 = time.time()
         total = t1 - t0
         device = 'cpu'
@@ -44,16 +48,26 @@ if __name__ == '__main__':
     elif config['search_algorithm'] == 'ACO':
         # hyperparameters
         max_iterations = config['ACO']['max_iterations']
-        ant_count =  config['ACO']['ant_count']
-        max_moves =  config['ACO']['max_moves']
+        ant_count = config['ACO']['ant_count']
+        max_moves = config['ACO']['max_moves']
 
-        max_iter = 10
+        max_iter = config['ACO']['max_total_iterations']
+
+        print(f"Shortest path length: {len(shortest_path)}")
 
         count = 0
         path = []
         while count < max_iter:
             count += 1
-            path = run_ant_colony(maze,max_iterations, ant_count, max_moves)
-
+            path = run_ant_colony(maze, len(shortest_path), max_iterations, ant_count, max_moves)
         # plot final iteration
+        plot_maze(maze, path)
+    elif config['search_algorithm'] == 'genetic':
+        # hyperparameters
+        max_iterations = config['genetic']['max_iterations']
+        creature_lifespan = config['genetic']['creature_lifespan']
+        creature_count = config['genetic']['creature_count']
+        mutation_rate = config['genetic']['mutation_rate']
+
+        path = run_genetic_algorithm(maze, len(shortest_path), creature_lifespan, creature_count, mutation_rate, max_iterations)
         plot_maze(maze, path)
