@@ -20,6 +20,7 @@ if __name__ == '__main__':
         n_epoch = config['q_learning']['n_epoch']
         lr = config['q_learning']['lr']
         epsilon = config['q_learning']['epsilon']
+        epsilon_decay_factor = config['q_learning']['epsilon_decay_factor']
         mem_size = config['q_learning']['mem_size']
         batch_size = config['q_learning']['batch_size']
         gamma = config['q_learning']['gamma']
@@ -29,7 +30,8 @@ if __name__ == '__main__':
         test = find_shortest_path(maze)
         q_maze = Qmaze(maze)
         t0 = time.time()
-        model = train_model(q_maze, test, n_epoch=n_epoch, lr=lr, epsilon=epsilon, mem_size=mem_size, batch_size=batch_size, gamma=gamma, sync_freq=sync_freq, min_epochs=min_epochs)
+        model = train_model(q_maze, test, n_epoch=n_epoch, lr=lr, epsilon=epsilon,epsilon_decay_factor =epsilon_decay_factor,
+                            mem_size=mem_size, batch_size=batch_size, gamma=gamma, sync_freq=sync_freq, min_epochs=min_epochs)
         t1 = time.time()
         total = t1 - t0
         device = 'cpu'

@@ -1,4 +1,4 @@
-search_algorithm: ACO  # Options: q_learning, genetic, ACO
+search_algorithm: q_learning  # Options: q_learning, genetic, ACO
 
 maze_size: small  # Options: small, big
 
@@ -6,6 +6,7 @@ q_learning:
   n_epoch: 200
   lr: 0.001
   epsilon: 0.9
+  epsilon_decay_factor: 1
   mem_size: 2000
   batch_size: 50
   gamma: 0.9

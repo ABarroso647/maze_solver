@@ -62,6 +62,7 @@ def train_model(qmaze: Qmaze, optim_path, **kwargs):
     n_epoch = kwargs['n_epoch']
     lr = kwargs['lr']
     epsilon = kwargs['epsilon']
+    epsilon_decay_factor = kwargs['epsilon_decay_factor']
     mem_size = kwargs['mem_size']
     batch_size = kwargs['batch_size']
     gamma = kwargs['gamma']
@@ -164,5 +165,5 @@ def train_model(qmaze: Qmaze, optim_path, **kwargs):
             count += 1
 
         if epsilon > 0.1:  # Decrements the epsilon value each epoch
-            epsilon -= (1 / n_epoch)
+            epsilon -= (epsilon_decay_factor / n_epoch)
     return model2
