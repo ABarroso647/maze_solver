@@ -1,16 +1,11 @@
 from Maze_Generation.gen import plot_maze, find_shortest_path
-import numpy as np
 import time
 import torch
-
-import sys
-from typing import Callable
 import yaml
-
 
 from Q_Learning.q_model import Qmaze, train_model, play_game
 from Maze_Generation.gen import MAZE, BIG_MAZE, find_shortest_path
-#from Ant_Colony_Optimization.aco import run_ant_colony
+from Ant_Colony_Optimization.aco import run_ant_colony
 
 if __name__ == '__main__':
     with open('./config/config.yml', 'r') as f:
@@ -44,3 +39,19 @@ if __name__ == '__main__':
         print(f"Total time to converge: {total}")
 
         plot_maze(maze, q_maze.path())
+    elif config['search_algorithm'] == 'ACO':
+        # hyperparameters
+        max_iterations = config['ACO']['max_iterations']
+        ant_count =  config['ACO']['ant_count']
+        max_moves =  config['ACO']['max_moves']
+
+        max_iter = 10
+
+        count = 0
+        path = []
+        while count < max_iter:
+            count += 1
+            path = run_ant_colony(maze,max_iterations, ant_count, max_moves)
+
+        # plot final iteration
+        plot_maze(maze, path)

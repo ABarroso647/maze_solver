@@ -1,4 +1,4 @@
-search_algorithm: q_learning  # Options: q_learning, genetic, ACO
+search_algorithm: ACO  # Options: q_learning, genetic, ACO
 
 maze_size: small  # Options: small, big
 
@@ -12,3 +12,10 @@ q_learning:
   sync_freq: 250
   min_epochs: 50
 
+ACO:
+  # Number of steps each ant can take
+  max_moves: 30
+  # Number of times ants are released into maze (generations)
+  max_iterations: 10
+  # Numbers of ants released each iteration
+  ant_count: 10
