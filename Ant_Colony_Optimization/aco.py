@@ -1,9 +1,8 @@
-import numpy as np
 import random
 import time
 
 # Enable/disable timing tests
-ENABLE_TIMING = True
+ENABLE_TIMING = False
 
 
 class Ant:
@@ -46,10 +45,11 @@ class Ant:
             for dx, dy in valid_moves:
                 newx = self.position[0] + dx
                 newy = self.position[1] + dy
+                move_probability = 1.0
 
-                move_probability = self.pheremones[newx][newy] / all_pheremones
-                if np.isnan(move_probability):
-                    move_probability = 1.0
+                if all_pheremones != 0:
+                    move_probability = self.pheremones[newx][newy] / all_pheremones
+
                 probabilities.append(move_probability)
 
             # Choose a random move based on the weighted probability previously calculated
@@ -168,6 +168,4 @@ def run_ant_colony(maze, shortest_path_len, max_iterations, ant_count, max_moves
         iterations += 1
 
     return shortest_path
-    # Plot the shortest path we calculated
-    # if not ENABLE_TIMING:
-    #     plot_maze(final_maze.maze, shortest_path)
+    
