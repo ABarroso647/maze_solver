@@ -15,11 +15,11 @@ q_learning:
 
 ACO:
   # Number of steps each ant can take
-  max_moves: 30
+  max_moves: 200
   # Number of times ants are released into maze (generations)
-  max_iterations: 10
+  max_iterations: 20
   # Numbers of ants released each iteration
-  ant_count: 10
+  ant_count: 100
   # Numbers of runs of algorithm
   max_total_iterations: 10
 
@@ -32,3 +32,4 @@ genetic:
   max_iterations: 100
   # mutate 15% of the moves
   mutation_rate: 0.05
+  
