@@ -21,13 +21,13 @@ ACTIONS = {
 }
 
 
-
-
 class Qmaze:
-    def __init__(self, maze: list[list[float]], initial_pos: tuple[int,int] = (0, 0)) -> None:
+    def __init__(self, maze: list[list[float]], initial_pos: tuple[int, int] = (0, 0)) -> None:
         self._maze = np.array(maze).astype(float32)
         nrows, ncols = self._maze.shape
         self.target = (nrows - 1, ncols - 1)  # bottom right = target
+
+        # 0's are free spaces
         zero_cells = np.where(self._maze == 0.0)
         # we assume maze is in 2d
         self.free_cells = list(zip(zero_cells[0], zero_cells[1]))
@@ -38,7 +38,8 @@ class Qmaze:
             raise Exception("Invalid Rat Location: must sit on a free cell")
         self.reset(initial_pos)
 
-    def reset(self, agent: tuple[int,int] ) -> None:
+    # reset maze state back to start as well as position back to start
+    def reset(self, agent: tuple[int, int]) -> None:
         self.agent = agent
         self.maze = np.copy(self._maze)
         row, col = agent
@@ -48,16 +49,22 @@ class Qmaze:
         self.total_reward = 0
         self.visited = set()
 
+    # update the state with the choice
     def update_state(self, action) -> None:
         cur_row, cur_col, cur_mode = self.state
 
+        # if we are not in a wall, mark the state as visited
         if self.maze[cur_row, cur_col] < 1.0:
             self.visited.add((cur_row, cur_col))  # mark as visited
         valid_actions = self.valid_actions()
+
+        # update the move based on valid/inalid actions
         if not valid_actions:
             cur_mode = 'blocked'
         elif action in valid_actions:
             cur_mode = 'valid'
+
+            # perform valid action
             if action == LEFT:
                 cur_col -= 1
             elif action == UP:
@@ -74,20 +81,28 @@ class Qmaze:
     def get_reward(self) -> float:
         cur_row, cur_col, mode = self.state
         nrows, ncols = self.maze.shape
+        #get a reward of 1 if reach the end
         if cur_row == nrows - 1 and cur_col == ncols - 1:
             return 1.0
+        # get essentially a loss if you move into the wall
         if mode == 'blocked':
             return self.min_reward - 1
+
+        # disincentive moving through already visited squared
         if (cur_row, cur_col) in self.visited:
             return -0.25
+
+        # if somehow an invalid move hppens disincentive it
         if mode == 'invalid':
             print("invalid")
             return -0.75
+        # make valid moves to new areas the second best option
         else:
             # if mode == 'valid'
             return -0.04
 
-    def act(self, action)-> (np.array, float, str):
+    # perform an action
+    def act(self, action) -> (np.array, float, str):
         self.update_state(action)
         reward = self.get_reward()
         self.total_reward += reward
@@ -95,6 +110,7 @@ class Qmaze:
         envstate = self.observe()
         return envstate, reward, status
 
+    # get the envstate of the system
     def observe(self):
         canvas = self.draw_env()
         envstate = canvas.reshape((1, -1))
@@ -105,39 +121,46 @@ class Qmaze:
         nrows, ncols = self.maze.shape
         for i in range(nrows):
             for inc in range(ncols):
-                if canvas[i,inc] < 0.5:
+                if canvas[i, inc] < 0.5:
                     canvas[i, inc] = 0.0
         row, col, valid = self.state
         canvas[row, col] = AGENT_MARK
         return canvas
 
-    def game_status(self)-> str:
+    def game_status(self) -> str:
+        # if we have been essentially stuck in the maze return a loss
         if self.total_reward < self.min_reward:
             return 'lose'
         cur_row, cur_col, mode = self.state
         nrows, ncols = self.maze.shape
+
+        # if we made it to the end return a win
         if cur_row == nrows - 1 and cur_col == ncols - 1:
             return 'win'
 
         return 'not over'
 
-    def valid_actions(self, cell: Optional[tuple[int,int]]=None)-> list[int]:
+    # verifying a move is valid
+    def valid_actions(self, cell: Optional[tuple[int, int]] = None) -> list[int]:
+        # if cell is none, checking around the current shape
         if cell is None:
             row, col, mode = self.state
         else:
             row, col = cell
         actions = list(ACTIONS.keys())
         nrows, ncols = self.maze.shape
+
+        # do not let the agent leave the maze not at endpoing
         if row == 0:
             actions.remove(1)
         elif row == nrows - 1:
             actions.remove(3)
-
         if col == 0:
             actions.remove(0)
         elif col == ncols - 1:
             actions.remove(2)
 
+        # do not let agent walk through walls
         if row > 0 and self.maze[row - 1, col] == 1.0:
             actions.remove(1)
         if row < nrows - 1 and self.maze[row + 1, col] == 1.0:
@@ -150,14 +173,15 @@ class Qmaze:
 
         return actions
 
-    def path(self) -> list[tuple[int,int]]:
+    # combine the visited list with the current point to get the total path travelled
+    def path(self) -> list[tuple[int, int]]:
         visited = self.visited
         cur_row, cur_col, _ = self.state
         visited.add((cur_row, cur_col))
         return list(visited)
 
 
-
+# PLOT the current progress on the q-maze
 def show(qmaze: Qmaze):
     plt.grid()
     nrows, ncols = qmaze.maze.shape
@@ -175,7 +199,6 @@ def show(qmaze: Qmaze):
     img = plt.imshow(canvas, interpolation='none', cmap='gray_r')
     plt.show()
     return img
-
 
 
 if __name__ == '__main__':
