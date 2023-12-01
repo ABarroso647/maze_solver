@@ -1,6 +1,6 @@
-search_algorithm: genetic  # Options: q_learning, genetic, ACO, 
+search_algorithm: q_learning  # Options: q_learning, genetic, ACO,
 
-maze_size: big  # Options: small, big
+maze_size: small  # Options: small, big
 
 q_learning:
   n_epoch: 200

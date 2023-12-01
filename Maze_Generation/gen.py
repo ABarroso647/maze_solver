@@ -52,7 +52,7 @@ BIG_MAZE = [[0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1],
 def find_shortest_path(maze):
     maze = np.array(maze)
     start = (0, 0)
-    end = (maze.shape[0]-1, maze.shape[1]-1)
+    end = (maze.shape[0] - 1, maze.shape[1] - 1)
 
     directions = [(0, 1), (1, 0), (0, -1), (-1, 0)]
     size = len(maze)
@@ -85,13 +85,14 @@ def find_shortest_path(maze):
 
     return path
 
+
 # Function plots the maze and provided (shortest) path
 # Function takes in the maze above which should not be modified
 # Function takes in the path you provide which will be a list of list of coordinates
 # eg. [[0, 0], [1, 0], [1, 1]...]
 
 # Function will pop up a matplotlib diagram when exectuted
-def plot_maze(maze, path=None):
+def plot_maze(maze, title=None, path=None):
     maze = np.array(maze)
     if path is not None:
         maze[0][0] = 2
@@ -102,7 +103,7 @@ def plot_maze(maze, path=None):
 
     plt.figure(figsize=(10, 10))
     plt.imshow(maze, cmap=cmap, interpolation='none')
-
+    plt.title(title, fontsize=30)
     for x in range(len(maze[0]) + 1):
         plt.axhline(y=x - 0.5, color='black', linestyle='-', linewidth=2)
         plt.axvline(x=x - 0.5, color='black', linestyle='-', linewidth=2)
@@ -116,22 +117,3 @@ def plot_maze(maze, path=None):
     plt.arrow(maze.shape[1] - 1 - 0.4, maze.shape[0] - 1, 0.4, 0, fc='blue', ec='blue', head_width=0.3, head_length=0.3)
 
     plt.show()
-
-'''
-To run the code above, first:
-
-Install matploblib by running pip3 install -r requirements.txt
-
-then
-
-import sys
-sys.path.append('../Maze_Generation/')
-from gen import find_shortest_path, plot_maze, maze
-
-then
-
-Then execute path = find_shortest_path(maze, (0,0), (9,9)) to get the BFS shortest path
-Then find your shortest path and save it to a variable
-Then execute plot_maze(maze, your_shortest_path) to see your path plotted on the maze
-Compare against the BFS shortest path to ensure it works
-'''

@@ -1,10 +1,9 @@
-from Maze_Generation.gen import plot_maze, find_shortest_path
 import time
 import torch
 import yaml
 
 from Q_Learning.q_model import Qmaze, train_model, play_game
-from Maze_Generation.gen import MAZE, BIG_MAZE, find_shortest_path
+from Maze_Generation.gen import MAZE, plot_maze, BIG_MAZE, find_shortest_path
 from Ant_Colony_Optimization.aco import run_ant_colony
 from Genetic_Algo.genetic import run_genetic_algorithm
 
@@ -17,7 +16,7 @@ if __name__ == '__main__':
         maze = BIG_MAZE
 
     shortest_path = find_shortest_path(maze)
-    plot_maze(maze, shortest_path)
+    plot_maze(maze,"BFS Shortest Path", shortest_path)
 
     if config['search_algorithm'] == 'q_learning':
         # hyperparameters
@@ -45,7 +44,7 @@ if __name__ == '__main__':
         play_game(q_maze, model, device)
         print(f"Total time to converge: {total}")
 
-        plot_maze(maze, q_maze.path())
+        plot_maze(maze,"DQN Shortest Path", q_maze.path())
     elif config['search_algorithm'] == 'ACO':
         # hyperparameters
         max_iterations = config['ACO']['max_iterations']
@@ -58,7 +57,7 @@ if __name__ == '__main__':
 
         path = run_ant_colony(maze, len(shortest_path), max_iterations, ant_count, max_moves)
         # plot final iteration
-        plot_maze(maze, path)
+        plot_maze(maze,"ACO Shortest Path", path)
     elif config['search_algorithm'] == 'genetic':
         # hyperparameters
         max_iterations = config['genetic']['max_iterations']
@@ -67,4 +66,4 @@ if __name__ == '__main__':
         mutation_rate = config['genetic']['mutation_rate']
 
         path = run_genetic_algorithm(maze, len(shortest_path), creature_lifespan, creature_count, mutation_rate, max_iterations)
-        plot_maze(maze, path)
+        plot_maze(maze, "Genetic Algorithm Shortest Path", path)
