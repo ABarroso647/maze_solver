@@ -1,6 +1,6 @@
-search_algorithm: q_learning  # Options: q_learning, genetic, ACO
+search_algorithm: genetic  # Options: q_learning, genetic, ACO, 
 
-maze_size: small  # Options: small, big
+maze_size: big  # Options: small, big
 
 q_learning:
   n_epoch: 200
@@ -27,9 +27,9 @@ genetic:
   # Number of steps each creature can take
   creature_lifespan: 100
   # Numbers of creatures released each iteration
-  creature_count: 30 # divisible by 10
+  creature_count: 20 # divisible by 10
   # Number of times creatures are released into maze (generations)
   max_iterations: 100
   # mutate 15% of the moves
-  mutation_rate: 0.05
+  mutation_rate: 0.15
   
